@@ -3,6 +3,8 @@ A browser-based tool that turns a 110-page insurance claim PDF into a searchable
 
 Built in a single Claude session. No coding experience required.
 
+Demo video: Download 'insurance_claim_manager_demo.mp4' 
+
 **The Problem**
 After a house fire, our insurance company (Allstate) gave us a 110-page PDF listing 914 lost items worth $166,088 in replacement value. For each item, we were allowed to shop for alternatives as long as the cost stayed within the net value (ACV). The process looked like this:
 
