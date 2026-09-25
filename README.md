@@ -1,11 +1,9 @@
 **Insurance Claim Manager**
-
 A browser-based tool that turns a 110-page insurance claim PDF into a searchable, trackable inventory — with purchase logging and a one-click submission report.
 
 Built in a single Claude session. No coding experience required.
 
 **The Problem**
-
 After a house fire, our insurance company (Allstate) gave us a 110-page PDF listing 914 lost items worth $166,088 in replacement value. For each item, we were allowed to shop for alternatives as long as the cost stayed within the net value (ACV). The process looked like this:
 
 Scroll through 110 pages to find the item
@@ -37,7 +35,6 @@ Search for items, log purchases, generate your report
 That is it.
 
 **The Numbers**
-
 These are real numbers from the actual claim this tool was built for.
 
 Metric	Value
@@ -66,7 +63,6 @@ Dependencies	None
 See TECH-STACK.md for full details.
 
 **How It Was Built**
-
 This was built entirely through conversation with Claude (Anthropic's AI). No code editor was opened. No Stack Overflow. The entire build — PDF extraction, app design, data parsing, UI — happened in a single chat session.
 
 See HOW-IT-WAS-BUILT.md for the full story.
@@ -79,17 +75,14 @@ No multi-device sync — logs only exist on the browser where you entered them.
 A full-stack version with a real database and PDF upload is documented separately for those who want to extend this.
 
 **Who This Is For**
-
 Anyone dealing with an insurance claim inventory. This was built for a specific Allstate claim but the concept applies to any insurer that provides a structured PDF inventory list.
 
 If you lost your home and your insurance company gave you a document like this — you can adapt this tool for your own situation.
 
 **Author**
-
 Ryan Susanto
-
-LinkedIn: linkedin.com/in/richardsusanto
+LinkedIn: https://www.linkedin.com/in/ryan-susanto-31161b303/ 
 Built with Claude by Anthropic
-License
 
+License
 MIT License. Use it, modify it, share it freely.
