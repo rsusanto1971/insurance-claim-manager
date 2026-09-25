@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Insurance Claim Manager — Demo</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a202c; }
+
+  header { background: linear-gradient(135deg, #1e3a5f, #2d6a9f); color: white; padding: 18px 24px; display: flex; align-items: center; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+  header h1 { font-size: 1.4rem; font-weight: 700; }
+  header p { font-size: 0.85rem; opacity: 0.8; margin-top: 2px; }
+  .header-stats { margin-left: auto; display: flex; gap: 20px; text-align: center; }
+  .stat { background: rgba(255,255,255,0.15); border-radius: 8px; padding: 8px 14px; }
+  .stat-num { font-size: 1.3rem; font-weight: 700; }
+  .stat-label { font-size: 0.7rem; opacity: 0.85; }
+
+  .demo-banner { background: #fffbeb; border-bottom: 2px solid #f6c90e; padding: 10px 24px; font-size: 0.85rem; color: #744210; display: flex; align-items: center; gap: 10px; }
+  .demo-banner strong { font-weight: 700; }
+
+  .toolbar { background: white; padding: 14px 24px; display: flex; gap: 12px; align-items: center; border-bottom: 1px solid #e2e8f0; flex-wrap: wrap; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .search-wrap { position: relative; flex: 1; min-width: 220px; }
+  .search-wrap input { width: 100%; padding: 9px 36px 9px 14px; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 0.9rem; outline: none; }
+  .search-wrap input:focus { border-color: #2d6a9f; box-shadow: 0 0 0 3px rgba(45,106,159,0.15); }
+  .search-wrap .icon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #a0aec0; }
+  select { padding: 9px 12px; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 0.85rem; background: white; cursor: pointer; outline: none; }
+  select:focus { border-color: #2d6a9f; }
+  .btn { padding: 9px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.15s; }
+  .btn-primary { background: #2d6a9f; color: white; }
+  .btn-primary:hover { background: #1e3a5f; }
+  .btn-success { background: #38a169; color: white; }
+  .btn-success:hover { background: #276749; }
+  .btn-outline { background: white; color: #4a5568; border: 1px solid #cbd5e0; }
+  .btn-outline:hover { background: #f7fafc; }
+  .filter-tabs { display: flex; gap: 6px; }
+  .tab { padding: 7px 14px; border-radius: 20px; border: 1px solid #cbd5e0; background: white; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.15s; color: #4a5568; }
+  .tab.active { background: #2d6a9f; color: white; border-color: #2d6a9f; }
+
+  .main { display: flex; height: calc(100vh - 160px); }
+  .list-panel { width: 420px; min-width: 300px; background: white; border-right: 1px solid #e2e8f0; overflow-y: auto; }
+  .detail-panel { flex: 1; overflow-y: auto; padding: 24px; background: #f7fafc; }
+
+  .result-count { padding: 10px 16px; font-size: 0.8rem; color: #718096; background: #f7fafc; border-bottom: 1px solid #e2e8f0; }
+
+  .item-card { padding: 14px 16px; border-bottom: 1px solid #edf2f7; cursor: pointer; transition: background 0.1s; position: relative; }
+  .item-card:hover { background: #ebf4ff; }
+  .item-card.selected { background: #dbeafe; border-left: 3px solid #2d6a9f; }
+  .item-num { font-size: 0.75rem; color: #a0aec0; font-weight: 600; }
+  .item-desc { font-size: 0.9rem; font-weight: 600; color: #1a202c; margin: 2px 0; line-height: 1.3; }
+  .item-meta { font-size: 0.78rem; color: #718096; display: flex; gap: 10px; margin-top: 4px; }
+  .acv-badge { font-size: 0.78rem; font-weight: 700; color: #38a169; }
+  .purchased-tag { position: absolute; top: 10px; right: 10px; background: #38a169; color: white; font-size: 0.65rem; padding: 2px 7px; border-radius: 10px; font-weight: 700; }
+  .section-tag { display: inline-block; font-size: 0.7rem; background: #e2e8f0; color: #4a5568; padding: 1px 7px; border-radius: 10px; font-weight: 500; margin-top: 3px; }
+
+  .detail-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #a0aec0; }
+  .detail-empty svg { margin-bottom: 16px; opacity: 0.4; }
+
+  .detail-card { background: white; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); padding: 24px; max-width: 700px; }
+  .detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .detail-title { font-size: 1.15rem; font-weight: 700; color: #1a202c; line-height: 1.3; flex: 1; }
+  .detail-num { font-size: 0.85rem; color: #a0aec0; margin-bottom: 4px; }
+
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+  .field { background: #f7fafc; border-radius: 8px; padding: 10px 14px; }
+  .field-label { font-size: 0.72rem; color: #a0aec0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .field-value { font-size: 0.95rem; color: #1a202c; font-weight: 600; margin-top: 2px; }
+  .field-value.green { color: #38a169; }
+  .field-value.red { color: #e53e3e; }
+
+  .orig-desc { background: #fff8e1; border-left: 3px solid #f6c90e; padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 0.85rem; color: #744210; }
+  .url-link { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #ebf8ff; border-radius: 8px; color: #2b6cb0; font-size: 0.85rem; text-decoration: none; margin: 12px 0; word-break: break-all; }
+  .url-link:hover { background: #bee3f8; }
+
+  .purchase-section { margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+  .purchase-section h3 { font-size: 1rem; font-weight: 700; color: #1a202c; margin-bottom: 12px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-group label { font-size: 0.78rem; font-weight: 600; color: #4a5568; text-transform: uppercase; letter-spacing: 0.04em; }
+  .form-group input, .form-group textarea { padding: 8px 12px; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 0.9rem; outline: none; font-family: inherit; }
+  .form-group input:focus, .form-group textarea:focus { border-color: #2d6a9f; box-shadow: 0 0 0 3px rgba(45,106,159,0.15); }
+  .form-group textarea { height: 70px; resize: vertical; }
+  .purchase-actions { display: flex; gap: 10px; margin-top: 4px; }
+
+  .purchased-box { background: #f0fff4; border: 1px solid #c6f6d5; border-radius: 10px; padding: 14px 16px; margin-top: 14px; }
+  .purchased-box h4 { color: #276749; font-size: 0.9rem; font-weight: 700; margin-bottom: 8px; }
+  .purchased-box .prow { display: flex; justify-content: space-between; font-size: 0.85rem; color: #4a5568; padding: 3px 0; }
+  .purchased-box .pval { font-weight: 600; color: #1a202c; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: none; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: white; border-radius: 12px; padding: 28px; max-width: 750px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+  .modal h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 6px; }
+  .modal p { font-size: 0.85rem; color: #718096; margin-bottom: 16px; }
+  .report-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin: 12px 0; }
+  .report-table th { background: #1e3a5f; color: white; padding: 8px 10px; text-align: left; }
+  .report-table td { padding: 7px 10px; border-bottom: 1px solid #e2e8f0; }
+  .report-table tr:hover { background: #f7fafc; }
+  .report-summary { background: #f0fff4; border-radius: 8px; padding: 14px; margin: 16px 0; display: flex; gap: 24px; }
+  .report-summary .rs { text-align: center; }
+  .rs-num { font-size: 1.2rem; font-weight: 700; color: #276749; }
+  .rs-label { font-size: 0.75rem; color: #718096; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🏠 Insurance Claim Manager</h1>
+    <p>DEMO VERSION · Sample Data Only · No Real Claim Information</p>
+  </div>
+  <div class="header-stats">
+    <div class="stat"><div class="stat-num" id="stat-total">0</div><div class="stat-label">Total Items</div></div>
+    <div class="stat"><div class="stat-num" id="stat-purchased">0</div><div class="stat-label">Purchased</div></div>
+    <div class="stat"><div class="stat-num" id="stat-remaining">0</div><div class="stat-label">Remaining</div></div>
+    <div class="stat"><div class="stat-num" id="stat-saved">$0</div><div class="stat-label">Total ACV</div></div>
+  </div>
+</header>
+
+<div class="demo-banner">
+  ⚠️ <strong>Demo Version</strong> — This file contains sample data only. The real app was built from an actual 110-page insurance claim PDF with 914 items. See the README for details.
+</div>
+
+<div class="toolbar">
+  <div class="search-wrap">
+    <input type="text" id="search" placeholder="Search items... (e.g. refrigerator, couch, TV)" oninput="filterItems()">
+    <span class="icon">🔍</span>
+  </div>
+  <select id="section-filter" onchange="filterItems()">
+    <option value="">All Rooms</option>
+  </select>
+  <div class="filter-tabs">
+    <div class="tab active" data-filter="all" onclick="setTab(this,'all')">All</div>
+    <div class="tab" data-filter="pending" onclick="setTab(this,'pending')">Pending</div>
+    <div class="tab" data-filter="purchased" onclick="setTab(this,'purchased')">Purchased</div>
+  </div>
+  <button class="btn btn-success" onclick="openReport()">📋 Generate Report</button>
+</div>
+
+<div class="main">
+  <div class="list-panel">
+    <div class="result-count" id="result-count">Loading...</div>
+    <div id="item-list"></div>
+  </div>
+  <div class="detail-panel" id="detail-panel">
+    <div class="detail-empty">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      <p>Select an item from the list to view details</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2>📋 Insurance Submission Report</h2>
+    <p>Items marked as purchased — ready to submit to your insurance company</p>
+    <div class="report-summary" id="report-summary"></div>
+    <table class="report-table">
+      <thead>
+        <tr><th>#</th><th>Room</th><th>Original Item</th><th>Replacement</th><th>Store</th><th>Date</th><th>Paid</th><th>ACV</th></tr>
+      </thead>
+      <tbody id="report-body"></tbody>
+    </table>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeReport()">Close</button>
+      <button class="btn btn-primary" onclick="window.print()">🖨️ Print Report</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ITEMS = [
+  { number: 1, section: "KITCHEN", description: "LG French Door Refrigerator, 28 Cu. Ft., Stainless Steel", quantity: "1.00", unit: "EA", rcv: "2699.99", age_life: "4/14 yrs", condition: "Above Avg.", dep_pct: "17.14%", deprec: "462.86", acv: "2237.13", orig_desc: "LG LRMVC2306S, Refrigerator 4-door french door", url: "https://www.bestbuy.com" },
+  { number: 2, section: "KITCHEN", description: "Samsung 30-in Freestanding Gas Range, Stainless Steel", quantity: "1.00", unit: "EA", rcv: "1049.99", age_life: "3/15 yrs", condition: "Above Avg.", dep_pct: "12%", deprec: "126.00", acv: "923.99", orig_desc: "Samsung NX60A6511SS, Gas range", url: "https://www.homedepot.com" },
+  { number: 3, section: "KITCHEN", description: "KitchenAid 5-Quart Stand Mixer, Empire Red", quantity: "1.00", unit: "EA", rcv: "449.99", age_life: "2/10 yrs", condition: "Above Avg.", dep_pct: "12%", deprec: "54.00", acv: "395.99", orig_desc: "KitchenAid KSM150PSER, Stand mixer", url: "https://www.williams-sonoma.com" },
+  { number: 4, section: "KITCHEN", description: "Keurig K-Duo Coffee Maker, 12-Cup Carafe", quantity: "1.00", unit: "EA", rcv: "189.99", age_life: "1/10 yrs", condition: "Above Avg.", dep_pct: "6%", deprec: "11.40", acv: "178.59", orig_desc: "Keurig K-Duo, Coffee maker", url: "https://www.target.com" },
+  { number: 5, section: "KITCHEN", description: "Instant Pot Duo 7-in-1 Electric Pressure Cooker, 8 Qt", quantity: "1.00", unit: "EA", rcv: "99.99", age_life: "2/10 yrs", condition: "Avg.", dep_pct: "12%", deprec: "12.00", acv: "87.99", orig_desc: "Instant Pot IP-DUO80, Pressure cooker", url: "https://www.amazon.com" },
+  { number: 6, section: "LIVING ROOM", description: "Sony 65-in 4K OLED Smart TV, BRAVIA XR A80J", quantity: "1.00", unit: "EA", rcv: "1799.99", age_life: "2/7 yrs", condition: "Above Avg.", dep_pct: "17.14%", deprec: "308.55", acv: "1491.44", orig_desc: "Sony XBR65A8H, OLED television 65 inch", url: "https://www.bestbuy.com" },
+  { number: 7, section: "LIVING ROOM", description: "Ashley Furniture Darcy Sofa, Stone Gray", quantity: "1.00", unit: "EA", rcv: "699.99", age_life: "3/15 yrs", condition: "Above Avg.", dep_pct: "12%", deprec: "84.00", acv: "615.99", orig_desc: "Ashley 7500438, Sofa sectional", url: "https://www.ashleyfurniture.com" },
+  { number: 8, section: "LIVING ROOM", description: "Sonos Beam Soundbar, Gen 2, Black", quantity: "1.00", unit: "EA", rcv: "449.00", age_life: "1/7 yrs", condition: "Above Avg.", dep_pct: "8.57%", deprec: "38.48", acv: "410.52", orig_desc: "Sonos Beam Gen 1, Soundbar", url: "https://www.sonos.com" },
+  { number: 9, section: "LIVING ROOM", description: "Herman Miller Aeron Chair, Size B, Carbon", quantity: "1.00", unit: "EA", rcv: "1795.00", age_life: "5/12 yrs", condition: "Avg.", dep_pct: "25%", deprec: "448.75", acv: "1346.25", orig_desc: "Herman Miller Aeron, Office chair", url: "https://www.hermanmiller.com" },
+  { number: 10, section: "MASTER BEDROOM", description: "Casper Sleep Original Mattress, Queen", quantity: "1.00", unit: "EA", rcv: "1295.00", age_life: "4/10 yrs", condition: "Above Avg.", dep_pct: "24%", deprec: "310.80", acv: "984.20", orig_desc: "Casper Original, Mattress queen size", url: "https://www.casper.com" },
+  { number: 11, section: "MASTER BEDROOM", description: "Pottery Barn Benchwright Bed Frame, Queen, Almond", quantity: "1.00", unit: "EA", rcv: "1199.00", age_life: "5/20 yrs", condition: "Above Avg.", dep_pct: "15%", deprec: "179.85", acv: "1019.15", orig_desc: "Pottery Barn platform bed queen, Wood bed frame", url: "https://www.potterybarn.com" },
+  { number: 12, section: "MASTER BEDROOM", description: "LG 2-in-1 Portable Air Conditioner, 10,000 BTU", quantity: "1.00", unit: "EA", rcv: "549.99", age_life: "3/10 yrs", condition: "Avg.", dep_pct: "18%", deprec: "99.00", acv: "450.99", orig_desc: "LG LP1021BSSM, Air conditioner portable", url: "https://www.homedepot.com" },
+  { number: 13, section: "BASEMENT", description: "Westinghouse ePX3500 Electric Pressure Washer, 2500 PSI", quantity: "1.00", unit: "EA", rcv: "159.98", age_life: "5/20 yrs", condition: "Avg.", dep_pct: "25%", deprec: "40.00", acv: "119.98", orig_desc: "SPX300, Pressure washer electric", url: "https://www.amazon.com" },
+  { number: 14, section: "BASEMENT", description: "Sony BDP-S6700 4K Upscaling Wi-Fi Blu-ray Player", quantity: "1.00", unit: "EA", rcv: "119.99", age_life: "10/10 yrs", condition: "Avg.", dep_pct: "90%", deprec: "107.99", acv: "12.00", orig_desc: "Sony BDP-S360, DVD player", url: "https://www.bestbuy.com" },
+  { number: 15, section: "BASEMENT", description: "Vornado 610 Whole Room Air Circulator Fan", quantity: "1.00", unit: "EA", rcv: "89.99", age_life: "1/10 yrs", condition: "Above Avg.", dep_pct: "6%", deprec: "5.40", acv: "84.59", orig_desc: "Vornado 279TR, Fan", url: "https://www.kohls.com" },
+  { number: 16, section: "OFFICE", description: "Apple MacBook Pro 14-in, M3 Pro, 18GB RAM, 512GB SSD", quantity: "1.00", unit: "EA", rcv: "1999.00", age_life: "1/5 yrs", condition: "Above Avg.", dep_pct: "12%", deprec: "239.88", acv: "1759.12", orig_desc: "Apple MacBook Pro 13 M1, Laptop computer", url: "https://www.apple.com" },
+  { number: 17, section: "OFFICE", description: "LG 27-in 4K UHD IPS Monitor, UltraFine, USB-C", quantity: "1.00", unit: "EA", rcv: "599.99", age_life: "3/7 yrs", condition: "Above Avg.", dep_pct: "25.71%", deprec: "154.26", acv: "445.73", orig_desc: "LG 27UK850, Computer monitor 4K", url: "https://www.bestbuy.com" },
+  { number: 18, section: "LAUNDRY", description: "LG 7.3 Cu. Ft. Gas Dryer with Sensor Dry, White", quantity: "1.00", unit: "EA", rcv: "799.99", age_life: "1/10 yrs", condition: "Above Avg.", dep_pct: "6%", deprec: "48.00", acv: "751.99", orig_desc: "LG DLG7151W, Clothes dryer gas", url: "https://www.bestbuy.com" },
+  { number: 19, section: "LAUNDRY", description: "LG 5.0 Cu. Ft. Front Load Washing Machine, White", quantity: "1.00", unit: "EA", rcv: "849.99", age_life: "1/10 yrs", condition: "Above Avg.", dep_pct: "6%", deprec: "51.00", acv: "798.99", orig_desc: "LG WM3400CW, Washing machine front load", url: "https://www.bestbuy.com" },
+  { number: 20, section: "BATHROOM", description: "Dyson Supersonic Hair Dryer, Nickel/Copper", quantity: "1.00", unit: "EA", rcv: "429.99", age_life: "2/7 yrs", condition: "Above Avg.", dep_pct: "17.14%", deprec: "73.71", acv: "356.28", orig_desc: "Dyson HD03, Hair dryer", url: "https://www.dyson.com" }
+];
+
+let purchases = {};
+let activeFilter = 'all';
+let selectedItem = null;
+
+try {
+  const saved = localStorage.getItem('demo_insurance_purchases');
+  if (saved) purchases = JSON.parse(saved);
+} catch(e) {}
+
+function savePurchases() {
+  try { localStorage.setItem('demo_insurance_purchases', JSON.stringify(purchases)); } catch(e) {}
+}
+
+const sections = [...new Set(ITEMS.map(i => i.section))].sort();
+const sel = document.getElementById('section-filter');
+sections.forEach(s => {
+  const opt = document.createElement('option');
+  opt.value = s; opt.textContent = s;
+  sel.appendChild(opt);
+});
+
+function setTab(el, filter) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  activeFilter = filter;
+  filterItems();
+}
+
+function filterItems() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const section = document.getElementById('section-filter').value;
+
+  let filtered = ITEMS.filter(item => {
+    const matchQ = !q || item.description.toLowerCase().includes(q) ||
+                   (item.orig_desc && item.orig_desc.toLowerCase().includes(q)) ||
+                   String(item.number).includes(q) ||
+                   item.section.toLowerCase().includes(q);
+    const matchSection = !section || item.section === section;
+    const isPurchased = !!purchases[item.number];
+    const matchFilter = activeFilter === 'all' ||
+                        (activeFilter === 'purchased' && isPurchased) ||
+                        (activeFilter === 'pending' && !isPurchased);
+    return matchQ && matchSection && matchFilter;
+  });
+
+  renderList(filtered);
+}
+
+function renderList(filtered) {
+  const list = document.getElementById('item-list');
+  document.getElementById('result-count').textContent = `Showing ${filtered.length} of ${ITEMS.length} items`;
+
+  list.innerHTML = filtered.map(item => {
+    const p = purchases[item.number];
+    const isSelected = selectedItem && selectedItem.number === item.number;
+    return `<div class="item-card ${isSelected ? 'selected' : ''} ${p ? 'purchased' : ''}" onclick="selectItem(${item.number})">
+      ${p ? '<span class="purchased-tag">✓ Purchased</span>' : ''}
+      <div class="item-num">Item #${item.number}</div>
+      <div class="item-desc">${item.description}</div>
+      <div class="item-meta">
+        ${item.acv ? `<span class="acv-badge">ACV: $${item.acv}</span>` : ''}
+        ${item.condition ? `<span>${item.condition}</span>` : ''}
+        ${item.quantity ? `<span>Qty: ${item.quantity}</span>` : ''}
+      </div>
+      <span class="section-tag">${item.section}</span>
+    </div>`;
+  }).join('');
+
+  updateStats();
+}
+
+function updateStats() {
+  const purchased = Object.keys(purchases).length;
+  const totalACV = ITEMS.reduce((sum, i) => sum + (parseFloat(i.acv) || 0), 0);
+  document.getElementById('stat-total').textContent = ITEMS.length;
+  document.getElementById('stat-purchased').textContent = purchased;
+  document.getElementById('stat-remaining').textContent = ITEMS.length - purchased;
+  document.getElementById('stat-saved').textContent = '$' + totalACV.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function selectItem(num) {
+  selectedItem = ITEMS.find(i => i.number === num);
+  renderDetail();
+  filterItems();
+}
+
+function renderDetail() {
+  if (!selectedItem) return;
+  const item = selectedItem;
+  const p = purchases[item.number] || {};
+
+  document.getElementById('detail-panel').innerHTML = `
+    <div class="detail-card">
+      <div class="detail-num">Item #${item.number} · ${item.section}</div>
+      <div class="detail-header">
+        <div class="detail-title">${item.description}</div>
+      </div>
+
+      <div class="field-grid">
+        <div class="field"><div class="field-label">Replacement Cost (RCV)</div><div class="field-value">$${item.rcv}</div></div>
+        <div class="field"><div class="field-label">Net Value (ACV) — Your Budget</div><div class="field-value green">$${item.acv}</div></div>
+        <div class="field"><div class="field-label">Depreciation</div><div class="field-value red">${item.dep_pct} (-$${item.deprec})</div></div>
+        <div class="field"><div class="field-label">Condition / Age</div><div class="field-value">${item.condition} · ${item.age_life}</div></div>
+        <div class="field"><div class="field-label">Quantity</div><div class="field-value">${item.quantity} ${item.unit}</div></div>
+        <div class="field"><div class="field-label">Room / Section</div><div class="field-value">${item.section}</div></div>
+      </div>
+
+      ${item.orig_desc ? `<div class="orig-desc">📋 <strong>Original item:</strong> ${item.orig_desc}</div>` : ''}
+      ${item.url ? `<a class="url-link" href="${item.url}" target="_blank">🛒 View suggested replacement →</a>` : ''}
+
+      <div class="purchase-section">
+        <h3>📦 Log Your Purchase</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Replacement Item Description</label>
+            <input type="text" id="p-desc" placeholder="What did you buy?" value="${p.desc || ''}">
+          </div>
+          <div class="form-group">
+            <label>Store / Retailer</label>
+            <input type="text" id="p-store" placeholder="e.g. Amazon, Best Buy" value="${p.store || ''}">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Amount Paid ($)</label>
+            <input type="number" id="p-price" placeholder="0.00" step="0.01" value="${p.price || ''}">
+          </div>
+          <div class="form-group">
+            <label>Purchase Date</label>
+            <input type="date" id="p-date" value="${p.date || ''}">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label>Notes / Receipt Number</label>
+          <textarea id="p-notes" placeholder="Receipt number, order number, or any notes...">${p.notes || ''}</textarea>
+        </div>
+        <div class="purchase-actions">
+          <button class="btn btn-success" onclick="savePurchase(${item.number})">✓ Save Purchase</button>
+          ${p.desc ? `<button class="btn btn-outline" onclick="clearPurchase(${item.number})">✗ Clear</button>` : ''}
+        </div>
+
+        ${p.desc ? `
+        <div class="purchased-box">
+          <h4>✅ Purchase Logged</h4>
+          <div class="prow"><span>Item purchased:</span><span class="pval">${p.desc}</span></div>
+          <div class="prow"><span>Store:</span><span class="pval">${p.store || '—'}</span></div>
+          <div class="prow"><span>Amount paid:</span><span class="pval">$${p.price}</span></div>
+          <div class="prow"><span>Date:</span><span class="pval">${p.date || '—'}</span></div>
+          <div class="prow"><span>ACV budget:</span><span class="pval">$${item.acv}</span></div>
+          ${parseFloat(p.price) <= parseFloat(item.acv) ?
+            `<div class="prow"><span>Status:</span><span class="pval" style="color:#276749">✓ Within budget (saved $${(parseFloat(item.acv) - parseFloat(p.price)).toFixed(2)})</span></div>` :
+            `<div class="prow"><span>Status:</span><span class="pval" style="color:#e53e3e">⚠ Over budget by $${(parseFloat(p.price) - parseFloat(item.acv)).toFixed(2)})</span></div>`
+          }
+        </div>` : ''}
+      </div>
+    </div>`;
+}
+
+function savePurchase(num) {
+  const desc = document.getElementById('p-desc').value.trim();
+  const store = document.getElementById('p-store').value.trim();
+  const price = document.getElementById('p-price').value;
+  const date = document.getElementById('p-date').value;
+  const notes = document.getElementById('p-notes').value.trim();
+  if (!desc && !price) { alert('Please enter at least a description or price.'); return; }
+  purchases[num] = { desc, store, price, date, notes };
+  savePurchases();
+  renderDetail();
+  filterItems();
+}
+
+function clearPurchase(num) {
+  if (confirm('Remove this purchase log?')) {
+    delete purchases[num];
+    savePurchases();
+    renderDetail();
+    filterItems();
+  }
+}
+
+function openReport() {
+  const purchased = ITEMS.filter(i => purchases[i.number]);
+  if (purchased.length === 0) { alert('No purchases logged yet. Log purchases first to generate a report.'); return; }
+  const totalACV = purchased.reduce((s, i) => s + (parseFloat(i.acv) || 0), 0);
+  const totalPaid = purchased.reduce((s, i) => s + (parseFloat(purchases[i.number].price) || 0), 0);
+  document.getElementById('report-summary').innerHTML = `
+    <div class="rs"><div class="rs-num">${purchased.length}</div><div class="rs-label">Items Purchased</div></div>
+    <div class="rs"><div class="rs-num">$${totalACV.toFixed(2)}</div><div class="rs-label">Total ACV Allowed</div></div>
+    <div class="rs"><div class="rs-num">$${totalPaid.toFixed(2)}</div><div class="rs-label">Total Paid</div></div>
+    <div class="rs"><div class="rs-num">$${Math.max(0, totalACV - totalPaid).toFixed(2)}</div><div class="rs-label">Remaining Balance</div></div>
+  `;
+  document.getElementById('report-body').innerHTML = purchased.map(item => {
+    const p = purchases[item.number];
+    const over = parseFloat(p.price) > parseFloat(item.acv);
+    return `<tr>
+      <td>${item.number}</td><td>${item.section}</td><td>${item.description}</td>
+      <td>${p.desc}</td><td>${p.store || '—'}</td><td>${p.date || '—'}</td>
+      <td style="color:${over ? '#e53e3e' : '#276749'};font-weight:700">$${p.price}</td>
+      <td>$${item.acv}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeReport() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+filterItems();
+</script>
+</body>
+</html>
