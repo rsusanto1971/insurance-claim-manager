@@ -82,7 +82,6 @@ If you lost your home and your insurance company gave you a document like this â
 **Author**
 Ryan Susanto
 LinkedIn: https://www.linkedin.com/in/ryan-susanto-31161b303/ 
-Built with Claude by Anthropic
 
-License
+**Built with Claude by Anthropic**
 MIT License. Use it, modify it, share it freely.
